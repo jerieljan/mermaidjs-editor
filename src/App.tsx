@@ -27,6 +27,7 @@ function App() {
             minimap: { enabled: false },
             fontSize: 14,
             wordWrap: 'on',
+            fontFamily: 'Berkeley Mono, monospace',
           }}
         />
       </div>

@@ -15,6 +15,9 @@ const MermaidPreview: React.FC<MermaidPreviewProps> = ({ code }) => {
       startOnLoad: false,
       theme: 'default',
       securityLevel: 'loose',
+      themeVariables: {
+        fontFamily: 'Inter Display, sans-serif',
+      },
     })
   }, [])
 
@@ -72,7 +75,7 @@ const MermaidPreview: React.FC<MermaidPreviewProps> = ({ code }) => {
           marginBottom: '1rem',
           borderRadius: '4px',
           border: '1px solid #ffcdd2',
-          fontFamily: 'monospace',
+          fontFamily: 'Berkeley Mono, monospace',
           fontSize: '0.85em',
           whiteSpace: 'pre-wrap'
         }}>
