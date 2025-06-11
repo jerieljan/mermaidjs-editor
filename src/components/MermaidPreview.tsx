@@ -15,6 +15,7 @@ const MermaidPreview: React.FC<MermaidPreviewProps> = ({ code }) => {
       startOnLoad: false,
       theme: 'default',
       securityLevel: 'loose',
+      useMaxWidth: false,
       themeVariables: {
         fontFamily: 'Inter Display, sans-serif',
       },
@@ -85,10 +86,9 @@ const MermaidPreview: React.FC<MermaidPreviewProps> = ({ code }) => {
       <div 
         ref={containerRef}
         style={{ 
-          display: 'flex', 
-          justifyContent: 'center', 
-          alignItems: 'flex-start',
-          minHeight: '200px'
+          minHeight: '200px',
+          overflow: 'auto',
+          textAlign: 'center'
         }}
       />
     </div>
