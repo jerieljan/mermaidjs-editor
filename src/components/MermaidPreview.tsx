@@ -9,6 +9,7 @@ const MermaidPreview: React.FC<MermaidPreviewProps> = ({ code }) => {
   const containerRef = useRef<HTMLDivElement>(null)
   const [error, setError] = useState<string | null>(null)
   const [lastValidSvg, setLastValidSvg] = useState<string>('')
+  const [zoom, setZoom] = useState<number>(1)
 
   useEffect(() => {
     mermaid.initialize({
@@ -66,32 +67,108 @@ const MermaidPreview: React.FC<MermaidPreviewProps> = ({ code }) => {
     renderDiagram()
   }, [code])
 
+  const handleZoomIn = () => setZoom(prev => Math.min(prev + 0.25, 3))
+  const handleZoomOut = () => setZoom(prev => Math.max(prev - 0.25, 0.25))
+  const handleZoomReset = () => setZoom(1)
+
   return (
-    <div style={{ flex: 1, padding: '1rem', overflow: 'auto' }}>
-      {error && (
-        <div style={{ 
-          color: '#d32f2f', 
-          backgroundColor: '#ffebee', 
-          padding: '0.5rem', 
-          marginBottom: '1rem',
-          borderRadius: '4px',
-          border: '1px solid #ffcdd2',
-          fontFamily: 'Berkeley Mono, monospace',
-          fontSize: '0.85em',
-          whiteSpace: 'pre-wrap'
-        }}>
-          Error: {error}
+    <>
+      <div style={{ 
+        display: 'flex', 
+        justifyContent: 'space-between', 
+        alignItems: 'center',
+        margin: '0',
+        padding: '1rem',
+        backgroundColor: '#2c3e50',
+        color: 'white',
+        fontSize: '1.1rem',
+        fontWeight: 500
+      }}>
+        <span>Preview</span>
+        <div style={{ display: 'flex', gap: '0.5rem', alignItems: 'center' }}>
+          <button 
+            onClick={handleZoomOut}
+            style={{
+              background: 'rgba(255,255,255,0.1)',
+              border: '1px solid rgba(255,255,255,0.2)',
+              color: 'white',
+              padding: '0.25rem 0.5rem',
+              borderRadius: '4px',
+              cursor: 'pointer',
+              fontSize: '0.9rem'
+            }}
+          >
+            -
+          </button>
+          <span style={{ fontSize: '0.9rem', minWidth: '3rem', textAlign: 'center' }}>
+            {Math.round(zoom * 100)}%
+          </span>
+          <button 
+            onClick={handleZoomIn}
+            style={{
+              background: 'rgba(255,255,255,0.1)',
+              border: '1px solid rgba(255,255,255,0.2)',
+              color: 'white',
+              padding: '0.25rem 0.5rem',
+              borderRadius: '4px',
+              cursor: 'pointer',
+              fontSize: '0.9rem'
+            }}
+          >
+            +
+          </button>
+          <button 
+            onClick={handleZoomReset}
+            style={{
+              background: 'rgba(255,255,255,0.1)',
+              border: '1px solid rgba(255,255,255,0.2)',
+              color: 'white',
+              padding: '0.25rem 0.5rem',
+              borderRadius: '4px',
+              cursor: 'pointer',
+              fontSize: '0.8rem'
+            }}
+          >
+            Reset
+          </button>
         </div>
-      )}
-      <div 
-        ref={containerRef}
-        style={{ 
-          minHeight: '200px',
-          overflow: 'auto',
-          textAlign: 'center'
-        }}
-      />
-    </div>
+      </div>
+      <div style={{ flex: 1, padding: '1rem', overflow: 'auto' }}>
+        {error && (
+          <div style={{ 
+            color: '#d32f2f', 
+            backgroundColor: '#ffebee', 
+            padding: '0.5rem', 
+            marginBottom: '1rem',
+            borderRadius: '4px',
+            border: '1px solid #ffcdd2',
+            fontFamily: 'Berkeley Mono, monospace',
+            fontSize: '0.85em',
+            whiteSpace: 'pre-wrap'
+          }}>
+            Error: {error}
+          </div>
+        )}
+        <div 
+          style={{ 
+            minHeight: '200px',
+            overflow: 'auto',
+            textAlign: 'center'
+          }}
+        >
+          <div
+            ref={containerRef}
+            style={{
+              transform: `scale(${zoom})`,
+              transformOrigin: 'top center',
+              width: `${100 / zoom}%`,
+              height: zoom < 1 ? `${100 / zoom}%` : 'auto',
+              display: 'inline-block'
+            }}
+          />
+        </div>
+      </div>
+    </>
   )
 }
 

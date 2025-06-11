@@ -32,7 +32,6 @@ function App() {
         />
       </div>
       <div className="preview-pane">
-        <h2>Preview</h2>
         <MermaidPreview code={code} />
       </div>
     </div>
