@@ -12,27 +12,30 @@ const defaultMermaidCode = `graph TD
 
 function App() {
   const [code, setCode] = useState(defaultMermaidCode)
+  const [isEditorVisible, setIsEditorVisible] = useState(true)
 
   return (
     <div className="app">
-      <div className="editor-pane">
-        <h2>Mermaid Editor</h2>
-        <Editor
-          height="90vh"
-          defaultLanguage="markdown"
-          value={code}
-          onChange={(value) => setCode(value || '')}
-          theme="vs-dark"
-          options={{
-            minimap: { enabled: false },
-            fontSize: 14,
-            wordWrap: 'on',
-            fontFamily: 'Berkeley Mono, monospace',
-          }}
-        />
-      </div>
-      <div className="preview-pane">
-        <MermaidPreview code={code} />
+      {isEditorVisible && (
+        <div className="editor-pane">
+          <h2>Mermaid Editor</h2>
+          <Editor
+            height="90vh"
+            defaultLanguage="markdown"
+            value={code}
+            onChange={(value) => setCode(value || '')}
+            theme="vs-dark"
+            options={{
+              minimap: { enabled: false },
+              fontSize: 14,
+              wordWrap: 'on',
+              fontFamily: 'Berkeley Mono, monospace',
+            }}
+          />
+        </div>
+      )}
+      <div className={`preview-pane ${!isEditorVisible ? 'full-width' : ''}`}>
+        <MermaidPreview code={code} isEditorVisible={isEditorVisible} onToggleEditor={() => setIsEditorVisible(!isEditorVisible)} />
       </div>
     </div>
   )

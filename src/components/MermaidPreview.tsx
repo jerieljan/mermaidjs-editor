@@ -3,9 +3,11 @@ import mermaid from 'mermaid'
 
 interface MermaidPreviewProps {
   code: string
+  isEditorVisible: boolean
+  onToggleEditor: () => void
 }
 
-const MermaidPreview: React.FC<MermaidPreviewProps> = ({ code }) => {
+const MermaidPreview: React.FC<MermaidPreviewProps> = ({ code, isEditorVisible, onToggleEditor }) => {
   const containerRef = useRef<HTMLDivElement>(null)
   const [error, setError] = useState<string | null>(null)
   const [lastValidSvg, setLastValidSvg] = useState<string>('')
@@ -86,6 +88,21 @@ const MermaidPreview: React.FC<MermaidPreviewProps> = ({ code }) => {
       }}>
         <span>Preview</span>
         <div style={{ display: 'flex', gap: '0.5rem', alignItems: 'center' }}>
+          <button 
+            onClick={onToggleEditor}
+            style={{
+              background: 'rgba(255,255,255,0.1)',
+              border: '1px solid rgba(255,255,255,0.2)',
+              color: 'white',
+              padding: '0.25rem 0.5rem',
+              borderRadius: '4px',
+              cursor: 'pointer',
+              fontSize: '0.8rem',
+              marginRight: '0.5rem'
+            }}
+          >
+            {isEditorVisible ? 'Hide Editor' : 'Show Editor'}
+          </button>
           <button 
             onClick={handleZoomOut}
             style={{

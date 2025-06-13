@@ -24,6 +24,10 @@
   background-color: #f9f9f9;
 }
 
+.preview-pane.full-width {
+  width: 100%;
+}
+
 .editor-pane h2, .preview-pane h2 {
   margin: 0;
   padding: 1rem;
