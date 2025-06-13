@@ -73,6 +73,20 @@ const MermaidPreview: React.FC<MermaidPreviewProps> = ({ code, isEditorVisible, 
   const handleZoomOut = () => setZoom(prev => Math.max(prev - 0.25, 0.25))
   const handleZoomReset = () => setZoom(1)
 
+  const handleDownloadSvg = () => {
+    if (!lastValidSvg || error) return
+    
+    const blob = new Blob([lastValidSvg], { type: 'image/svg+xml' })
+    const url = URL.createObjectURL(blob)
+    const a = document.createElement('a')
+    a.href = url
+    a.download = 'diagram.svg'
+    document.body.appendChild(a)
+    a.click()
+    document.body.removeChild(a)
+    URL.revokeObjectURL(url)
+  }
+
   return (
     <>
       <div style={{ 
@@ -147,6 +161,22 @@ const MermaidPreview: React.FC<MermaidPreviewProps> = ({ code, isEditorVisible, 
             }}
           >
             Reset
+          </button>
+          <button 
+            onClick={handleDownloadSvg}
+            disabled={!lastValidSvg || !!error}
+            style={{
+              background: (!lastValidSvg || error) ? 'rgba(255,255,255,0.05)' : 'rgba(255,255,255,0.1)',
+              border: '1px solid rgba(255,255,255,0.2)',
+              color: (!lastValidSvg || error) ? 'rgba(255,255,255,0.4)' : 'white',
+              padding: '0.25rem 0.5rem',
+              borderRadius: '4px',
+              cursor: (!lastValidSvg || error) ? 'not-allowed' : 'pointer',
+              fontSize: '0.8rem',
+              marginLeft: '0.5rem'
+            }}
+          >
+            SVG
           </button>
         </div>
       </div>
