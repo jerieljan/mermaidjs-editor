@@ -1,4 +1,4 @@
-const CACHE_NAME = 'mermaid-editor-v1'
+const CACHE_NAME = 'mermaid-editor-v2'
 const urlsToCache = [
   '/',
   '/index.html',
@@ -80,14 +80,30 @@ self.addEventListener('fetch', (event) => {
     return
   }
   
-  // Cache-first strategy for static assets only
+  // Handle external CDN resources (like Monaco from jsdelivr.net) - network-first
+  if (url.origin !== location.origin) {
+    console.log('🌐 SW External Resource:', event.request.url)
+    event.respondWith(
+      fetch(event.request)
+        .then((response) => {
+          console.log('📥 SW External Response:', event.request.url, response.status, response.type)
+          return response
+        })
+        .catch((error) => {
+          console.error('❌ SW External Fetch Failed:', event.request.url, error)
+          // Try cache as fallback for external resources
+          return caches.match(event.request)
+        })
+    )
+    return
+  }
+  
+  // Cache-first strategy for local static assets only
   event.respondWith(
     caches.match(event.request)
       .then((response) => {
         if (response) {
-          if (isMonacoResource) {
-            console.log('📦 SW Monaco Cache Hit:', event.request.url)
-          }
+          console.log('📦 SW Cache Hit:', event.request.url)
           return response
         }
         
@@ -95,26 +111,18 @@ self.addEventListener('fetch', (event) => {
         
         return fetch(fetchRequest).then((response) => {
           // Check if we received a valid response
-          if (!response || response.status !== 200 || response.type !== 'basic') {
-            if (isMonacoResource) {
-              console.log('⚠️ SW Monaco Invalid Response:', event.request.url, response?.status)
-            }
+          if (!response || response.status !== 200) {
+            console.log('⚠️ SW Invalid Response:', event.request.url, response?.status)
             return response
           }
 
-          // Don't cache Monaco resources to avoid conflicts
-          if (isMonacoResource) {
-            console.log('🚫 SW Monaco - Not Caching:', event.request.url)
-            return response
-          }
-
-          // Only cache static assets, not external CDN resources
-          if (url.origin === location.origin &&
-              (event.request.url.includes('/assets/') || 
-               event.request.url.endsWith('.js') || 
-               event.request.url.endsWith('.css') ||
-               event.request.url.endsWith('.svg'))) {
+          // Only cache local static assets
+          if (event.request.url.includes('/assets/') || 
+              event.request.url.endsWith('.js') || 
+              event.request.url.endsWith('.css') ||
+              event.request.url.endsWith('.svg')) {
             
+            console.log('💾 SW Caching:', event.request.url)
             const responseToCache = response.clone()
             caches.open(CACHE_NAME)
               .then((cache) => {
@@ -124,9 +132,7 @@ self.addEventListener('fetch', (event) => {
 
           return response
         }).catch((error) => {
-          if (isMonacoResource) {
-            console.error('❌ SW Monaco Fetch Error:', event.request.url, error)
-          }
+          console.error('❌ SW Local Fetch Error:', event.request.url, error)
           throw error
         })
       })
