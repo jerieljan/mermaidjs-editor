@@ -67,6 +67,8 @@ npm run lint
 
 ## Contributing
 
+Feel free to contribute changes using GitHub's pull requests. In typical fashion:
+
 1. Fork the repository
 2. Create your feature branch
 3. Make your changes
