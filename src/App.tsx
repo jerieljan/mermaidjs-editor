@@ -140,14 +140,7 @@ function App() {
       console.log('🧪 Testing Monaco worker functionality...')
       try {
         // Set some content that should trigger language services
-        editor.setValue(`// Monaco Editor Test
-const testFunction = () => {
-  console.log("Testing worker functionality");
-  return "success";
-};
-
-// This should trigger TypeScript/JavaScript language services
-testFunction();`)
+        editor.setValue(defaultMermaidCode)
         console.log('✅ Test content set successfully')
       } catch (error) {
         console.error('❌ Failed to set test content:', error)
