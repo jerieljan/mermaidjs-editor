@@ -18,7 +18,6 @@ const MermaidPreview: React.FC<MermaidPreviewProps> = ({ code, isEditorVisible, 
       startOnLoad: false,
       theme: 'default',
       securityLevel: 'loose',
-      useMaxWidth: false,
       themeVariables: {
         fontFamily: 'Inter Display, sans-serif',
       },
