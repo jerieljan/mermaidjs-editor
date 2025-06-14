@@ -1,4 +1,4 @@
-const CACHE_NAME = 'mermaid-editor-v2'
+const CACHE_NAME = 'mermaid-editor-v3'
 const urlsToCache = [
   '/',
   '/index.html',
@@ -51,15 +51,22 @@ self.addEventListener('fetch', (event) => {
       fetch(event.request)
         .then((response) => {
           console.log('📥 SW Document Response:', event.request.url, response.status)
-          // Don't cache HTML documents with CSP headers
           return response
         })
         .catch((error) => {
           console.error('❌ SW Document Fetch Failed:', event.request.url, error)
-          // Fallback to cache only if network fails
-          return caches.match(event.request)
+          return caches.match(event.request).then(cachedResponse => {
+            return cachedResponse || new Response('Network Error', { status: 503 })
+          })
         })
     )
+    return
+  }
+  
+  // Handle external CDN resources (like Monaco from jsdelivr.net) - bypass service worker
+  if (url.origin !== location.origin) {
+    console.log('🌐 SW External Resource - Bypassing:', event.request.url)
+    // Don't intercept external requests - let them go directly to network
     return
   }
   
@@ -74,25 +81,7 @@ self.addEventListener('fetch', (event) => {
         })
         .catch((error) => {
           console.error('❌ SW Monaco Worker Failed:', event.request.url, error)
-          throw error
-        })
-    )
-    return
-  }
-  
-  // Handle external CDN resources (like Monaco from jsdelivr.net) - network-first
-  if (url.origin !== location.origin) {
-    console.log('🌐 SW External Resource:', event.request.url)
-    event.respondWith(
-      fetch(event.request)
-        .then((response) => {
-          console.log('📥 SW External Response:', event.request.url, response.status, response.type)
-          return response
-        })
-        .catch((error) => {
-          console.error('❌ SW External Fetch Failed:', event.request.url, error)
-          // Try cache as fallback for external resources
-          return caches.match(event.request)
+          return new Response('Worker Load Failed', { status: 503 })
         })
     )
     return
@@ -107,34 +96,43 @@ self.addEventListener('fetch', (event) => {
           return response
         }
         
-        const fetchRequest = event.request.clone()
-        
-        return fetch(fetchRequest).then((response) => {
-          // Check if we received a valid response
-          if (!response || response.status !== 200) {
-            console.log('⚠️ SW Invalid Response:', event.request.url, response?.status)
+        console.log('🌐 SW Cache Miss - Fetching:', event.request.url)
+        return fetch(event.request.clone())
+          .then((response) => {
+            // Check if we received a valid response
+            if (!response || response.status !== 200) {
+              console.log('⚠️ SW Invalid Response:', event.request.url, response?.status)
+              return response
+            }
+
+            // Only cache local static assets
+            if (event.request.url.includes('/assets/') || 
+                event.request.url.endsWith('.js') || 
+                event.request.url.endsWith('.css') ||
+                event.request.url.endsWith('.svg')) {
+              
+              console.log('💾 SW Caching:', event.request.url)
+              const responseToCache = response.clone()
+              caches.open(CACHE_NAME)
+                .then((cache) => {
+                  cache.put(event.request, responseToCache)
+                })
+                .catch((cacheError) => {
+                  console.error('❌ SW Cache Put Failed:', event.request.url, cacheError)
+                })
+            }
+
             return response
-          }
-
-          // Only cache local static assets
-          if (event.request.url.includes('/assets/') || 
-              event.request.url.endsWith('.js') || 
-              event.request.url.endsWith('.css') ||
-              event.request.url.endsWith('.svg')) {
-            
-            console.log('💾 SW Caching:', event.request.url)
-            const responseToCache = response.clone()
-            caches.open(CACHE_NAME)
-              .then((cache) => {
-                cache.put(event.request, responseToCache)
-              })
-          }
-
-          return response
-        }).catch((error) => {
-          console.error('❌ SW Local Fetch Error:', event.request.url, error)
-          throw error
-        })
+          })
+          .catch((error) => {
+            console.error('❌ SW Local Fetch Error:', event.request.url, error)
+            return new Response('Network Error', { status: 503 })
+          })
+      })
+      .catch((error) => {
+        console.error('❌ SW Cache Match Error:', event.request.url, error)
+        return fetch(event.request.clone())
+          .catch(() => new Response('Service Worker Error', { status: 503 }))
       })
   )
 })
