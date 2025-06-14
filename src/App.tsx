@@ -1,6 +1,7 @@
 import { useState } from 'react'
 import Editor from '@monaco-editor/react'
 import MermaidPreview from './components/MermaidPreview'
+import ErrorBoundary from './components/ErrorBoundary'
 import './App.css'
 
 const defaultMermaidCode = `graph TD
@@ -15,29 +16,31 @@ function App() {
   const [isEditorVisible, setIsEditorVisible] = useState(true)
 
   return (
-    <div className="app">
-      {isEditorVisible && (
-        <div className="editor-pane">
-          <h2>Mermaid Editor</h2>
-          <Editor
-            height="90vh"
-            defaultLanguage="markdown"
-            value={code}
-            onChange={(value) => setCode(value || '')}
-            theme="vs-dark"
-            options={{
-              minimap: { enabled: false },
-              fontSize: 14,
-              wordWrap: 'on',
-              fontFamily: 'Berkeley Mono, Inconsolata, Menlo, monospace',
-            }}
-          />
+    <ErrorBoundary>
+      <div className="app">
+        {isEditorVisible && (
+          <div className="editor-pane">
+            <h2>Mermaid Editor</h2>
+            <Editor
+              height="90vh"
+              defaultLanguage="markdown"
+              value={code}
+              onChange={(value) => setCode(value || '')}
+              theme="vs-dark"
+              options={{
+                minimap: { enabled: false },
+                fontSize: 14,
+                wordWrap: 'on',
+                fontFamily: 'Berkeley Mono, Inconsolata, Menlo, monospace',
+              }}
+            />
+          </div>
+        )}
+        <div className={`preview-pane ${!isEditorVisible ? 'full-width' : ''}`}>
+          <MermaidPreview code={code} isEditorVisible={isEditorVisible} onToggleEditor={() => setIsEditorVisible(!isEditorVisible)} />
         </div>
-      )}
-      <div className={`preview-pane ${!isEditorVisible ? 'full-width' : ''}`}>
-        <MermaidPreview code={code} isEditorVisible={isEditorVisible} onToggleEditor={() => setIsEditorVisible(!isEditorVisible)} />
       </div>
-    </div>
+    </ErrorBoundary>
   )
 }
 

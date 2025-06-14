@@ -17,7 +17,7 @@ const MermaidPreview: React.FC<MermaidPreviewProps> = ({ code, isEditorVisible, 
     mermaid.initialize({
       startOnLoad: false,
       theme: 'default',
-      securityLevel: 'loose',
+      securityLevel: 'strict',
       themeVariables: {
         fontFamily: 'Inter Display, Helvetica, Arial, sans-serif',
       },
@@ -30,14 +30,6 @@ const MermaidPreview: React.FC<MermaidPreviewProps> = ({ code, isEditorVisible, 
     }
 
     const renderDiagram = async () => {
-      // Clean up any existing Mermaid error elements
-      const existingErrors = document.querySelectorAll('[id^="d"], .mermaidTooltip, #mermaid-error')
-      existingErrors.forEach(el => {
-        if (el.textContent?.includes('Syntax error') || el.classList.contains('mermaidTooltip')) {
-          el.remove()
-        }
-      })
-
       try {
         const id = `mermaid-${Date.now()}`
         const { svg } = await mermaid.render(id, code)
@@ -52,16 +44,6 @@ const MermaidPreview: React.FC<MermaidPreviewProps> = ({ code, isEditorVisible, 
         if (containerRef.current && lastValidSvg) {
           containerRef.current.innerHTML = lastValidSvg
         }
-        
-        // Clean up any error elements that might have been created during the failed render
-        setTimeout(() => {
-          const errorElements = document.querySelectorAll('[id^="d"], .mermaidTooltip, #mermaid-error')
-          errorElements.forEach(el => {
-            if (el.textContent?.includes('Syntax error') || el.classList.contains('mermaidTooltip')) {
-              el.remove()
-            }
-          })
-        }, 0)
       }
     }
 
