@@ -1,0 +1,235 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Monaco Editor Debug Page</title>
+    <style>
+        body {
+            font-family: monospace;
+            margin: 20px;
+            background: #1e1e1e;
+            color: #d4d4d4;
+        }
+        .log {
+            background: #2d2d30;
+            padding: 10px;
+            margin: 10px 0;
+            border-radius: 4px;
+            white-space: pre-wrap;
+            max-height: 300px;
+            overflow-y: auto;
+        }
+        .error { color: #f48771; }
+        .success { color: #4ec9b0; }
+        .warning { color: #dcdcaa; }
+        .info { color: #9cdcfe; }
+        button {
+            background: #0e639c;
+            color: white;
+            border: none;
+            padding: 10px 20px;
+            margin: 5px;
+            border-radius: 4px;
+            cursor: pointer;
+        }
+        button:hover {
+            background: #1177bb;
+        }
+        #editor {
+            width: 100%;
+            height: 400px;
+            border: 1px solid #3c3c3c;
+            margin: 10px 0;
+        }
+    </style>
+</head>
+<body>
+    <h1>Monaco Editor Debug Page</h1>
+    <p>This page helps diagnose Monaco Editor issues on Vercel deployment.</p>
+    
+    <div>
+        <button onclick="runDiagnostics()">Run Diagnostics</button>
+        <button onclick="testMonacoLoad()">Test Monaco Load</button>
+        <button onclick="testWorkerCreation()">Test Worker Creation</button>
+        <button onclick="clearLogs()">Clear Logs</button>
+    </div>
+    
+    <div id="logs" class="log"></div>
+    
+    <div id="editor"></div>
+
+    <script>
+        let logContainer = document.getElementById('logs');
+        
+        function log(message, type = 'info') {
+            const timestamp = new Date().toISOString();
+            const logEntry = document.createElement('div');
+            logEntry.className = type;
+            logEntry.textContent = `[${timestamp}] ${message}`;
+            logContainer.appendChild(logEntry);
+            logContainer.scrollTop = logContainer.scrollHeight;
+            console.log(`[${type.toUpperCase()}] ${message}`);
+        }
+        
+        function clearLogs() {
+            logContainer.innerHTML = '';
+        }
+        
+        async function runDiagnostics() {
+            log('🔍 Starting Monaco Editor Diagnostics...', 'info');
+            
+            // Environment info
+            log(`Environment: ${location.hostname}`, 'info');
+            log(`Protocol: ${location.protocol}`, 'info');
+            log(`User Agent: ${navigator.userAgent}`, 'info');
+            
+            // Service Worker check
+            if ('serviceWorker' in navigator) {
+                try {
+                    const registrations = await navigator.serviceWorker.getRegistrations();
+                    log(`Service Workers: ${registrations.length} registered`, 'info');
+                    registrations.forEach((reg, i) => {
+                        log(`SW ${i}: ${reg.scope} (${reg.active?.state})`, 'info');
+                    });
+                } catch (error) {
+                    log(`Service Worker check failed: ${error.message}`, 'error');
+                }
+            } else {
+                log('Service Worker not supported', 'warning');
+            }
+            
+            // CSP check
+            try {
+                // Try to create a worker to test CSP
+                const workerBlob = new Blob(['self.postMessage("test")'], { type: 'application/javascript' });
+                const workerUrl = URL.createObjectURL(workerBlob);
+                const testWorker = new Worker(workerUrl);
+                testWorker.onmessage = () => {
+                    log('✅ Worker creation allowed by CSP', 'success');
+                    testWorker.terminate();
+                    URL.revokeObjectURL(workerUrl);
+                };
+                testWorker.onerror = (error) => {
+                    log(`❌ Worker creation blocked: ${error.message}`, 'error');
+                    URL.revokeObjectURL(workerUrl);
+                };
+            } catch (error) {
+                log(`❌ Worker creation failed: ${error.message}`, 'error');
+            }
+            
+            // Check for Monaco resources
+            try {
+                const response = await fetch('/assets/');
+                log(`Assets directory accessible: ${response.status}`, response.ok ? 'success' : 'error');
+            } catch (error) {
+                log(`Assets check failed: ${error.message}`, 'error');
+            }
+            
+            log('🏁 Diagnostics complete', 'info');
+        }
+        
+        async function testMonacoLoad() {
+            log('🎯 Testing Monaco Editor Load...', 'info');
+            
+            try {
+                // Try to load Monaco from CDN first
+                const script = document.createElement('script');
+                script.src = 'https://cdn.jsdelivr.net/npm/monaco-editor@0.45.0/min/vs/loader.js';
+                script.onload = () => {
+                    log('✅ Monaco loader script loaded', 'success');
+                    
+                    if (window.require) {
+                        window.require.config({ 
+                            paths: { 
+                                'vs': 'https://cdn.jsdelivr.net/npm/monaco-editor@0.45.0/min/vs' 
+                            } 
+                        });
+                        
+                        window.require(['vs/editor/editor.main'], function() {
+                            log('✅ Monaco editor main loaded', 'success');
+                            
+                            try {
+                                const editor = monaco.editor.create(document.getElementById('editor'), {
+                                    value: 'console.log("Hello Monaco!");',
+                                    language: 'javascript',
+                                    theme: 'vs-dark'
+                                });
+                                log('✅ Monaco editor created successfully', 'success');
+                                
+                                // Test worker functionality
+                                setTimeout(() => {
+                                    editor.setValue('// Testing worker functionality\nconst x = 1;\nconst y = 2;\nconst z = x + y;');
+                                    log('✅ Monaco editor content updated', 'success');
+                                }, 1000);
+                                
+                            } catch (error) {
+                                log(`❌ Monaco editor creation failed: ${error.message}`, 'error');
+                            }
+                        });
+                    } else {
+                        log('❌ Monaco require not available', 'error');
+                    }
+                };
+                script.onerror = (error) => {
+                    log(`❌ Monaco loader script failed: ${error.message}`, 'error');
+                };
+                document.head.appendChild(script);
+                
+            } catch (error) {
+                log(`❌ Monaco load test failed: ${error.message}`, 'error');
+            }
+        }
+        
+        function testWorkerCreation() {
+            log('🔧 Testing Worker Creation...', 'info');
+            
+            const workerTests = [
+                {
+                    name: 'Blob Worker',
+                    create: () => {
+                        const blob = new Blob(['self.postMessage("blob worker test")'], { type: 'application/javascript' });
+                        const url = URL.createObjectURL(blob);
+                        return { worker: new Worker(url), cleanup: () => URL.revokeObjectURL(url) };
+                    }
+                },
+                {
+                    name: 'Data URL Worker',
+                    create: () => {
+                        const dataUrl = 'data:application/javascript,self.postMessage("data url worker test")';
+                        return { worker: new Worker(dataUrl), cleanup: () => {} };
+                    }
+                }
+            ];
+            
+            workerTests.forEach(test => {
+                try {
+                    const { worker, cleanup } = test.create();
+                    worker.onmessage = (e) => {
+                        log(`✅ ${test.name} success: ${e.data}`, 'success');
+                        worker.terminate();
+                        cleanup();
+                    };
+                    worker.onerror = (error) => {
+                        log(`❌ ${test.name} error: ${error.message}`, 'error');
+                        cleanup();
+                    };
+                    worker.postMessage('test');
+                } catch (error) {
+                    log(`❌ ${test.name} creation failed: ${error.message}`, 'error');
+                }
+            });
+        }
+        
+        // Monitor CSP violations
+        document.addEventListener('securitypolicyviolation', (e) => {
+            log(`🚨 CSP Violation: ${e.violatedDirective} - ${e.blockedURI}`, 'error');
+        });
+        
+        // Auto-run diagnostics on load
+        window.addEventListener('load', () => {
+            setTimeout(runDiagnostics, 1000);
+        });
+    </script>
+</body>
+</html>
