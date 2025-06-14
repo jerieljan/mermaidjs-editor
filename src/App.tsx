@@ -87,28 +87,76 @@ function App() {
   }, [])
 
   const handleEditorDidMount = (editor: any, monaco: any) => {
-    console.log('🎯 Monaco Editor Mounted')
-    console.log('Monaco version:', monaco.version || 'unknown')
-    console.log('Editor instance:', !!editor)
+    console.log('🎯 Monaco Editor Mounted Successfully')
+    console.log('📊 Monaco version:', monaco.version || 'unknown')
+    console.log('🎨 Editor instance created:', !!editor)
+    console.log('🔧 Monaco Editor API available:', !!monaco.editor)
     
-    // Log worker configuration
+    // Log detailed Monaco configuration
     if (monaco.editor) {
-      console.log('Monaco Editor API available')
+      console.log('✅ Monaco Editor API is ready')
+      
+      // Check if workers are properly configured
+      try {
+        const workerConfig = monaco.editor.getWorkers?.() || 'getWorkers not available'
+        console.log('🔧 Monaco Worker Config:', workerConfig)
+      } catch (error) {
+        console.log('⚠️ Monaco Worker Config check failed:', error instanceof Error ? error.message : String(error))
+      }
     }
     
-    // Check for worker-related errors
+    // Enhanced worker monitoring
     editor.onDidChangeModelContent(() => {
+      console.log('📝 Editor content changed - triggering language services')
+      
       // This will trigger language services which use workers
       setTimeout(() => {
-        const markers = monaco.editor.getModelMarkers({})
-        if (markers.length > 0) {
-          console.log('📝 Editor markers (potential worker issues):', markers)
+        try {
+          const model = editor.getModel()
+          if (model) {
+            const markers = monaco.editor.getModelMarkers({ resource: model.uri })
+            if (markers.length > 0) {
+              console.log('📝 Editor markers found:', markers.length)
+              markers.forEach((marker: any, index: number) => {
+                console.log(`  Marker ${index + 1}:`, {
+                  severity: marker.severity,
+                  message: marker.message,
+                  startLineNumber: marker.startLineNumber,
+                  startColumn: marker.startColumn
+                })
+              })
+            } else {
+              console.log('✅ No editor markers - language services working correctly')
+            }
+          }
+        } catch (error) {
+          console.error('❌ Error checking editor markers:', error)
         }
       }, 1000)
     })
+    
+    // Test worker functionality immediately
+    setTimeout(() => {
+      console.log('🧪 Testing Monaco worker functionality...')
+      try {
+        // Set some content that should trigger language services
+        editor.setValue(`// Monaco Editor Test
+const testFunction = () => {
+  console.log("Testing worker functionality");
+  return "success";
+};
+
+// This should trigger TypeScript/JavaScript language services
+testFunction();`)
+        console.log('✅ Test content set successfully')
+      } catch (error) {
+        console.error('❌ Failed to set test content:', error)
+      }
+    }, 500)
   }
 
   const handleEditorMount = (editor: any, monaco: any) => {
+    console.log('🚀 Monaco Editor Mount Event Triggered')
     handleEditorDidMount(editor, monaco)
   }
 

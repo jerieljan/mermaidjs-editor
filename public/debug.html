@@ -132,52 +132,129 @@
         async function testMonacoLoad() {
             log('🎯 Testing Monaco Editor Load...', 'info');
             
+            // First, let's test service worker behavior with Monaco requests
+            if ('serviceWorker' in navigator) {
+                try {
+                    const registration = await navigator.serviceWorker.ready;
+                    log('📡 Service Worker Ready for Monaco Test', 'info');
+                    
+                    // Send a message to get SW version
+                    const messageChannel = new MessageChannel();
+                    messageChannel.port1.onmessage = (event) => {
+                        log(`📨 SW Version: ${event.data.version}`, 'info');
+                    };
+                    registration.active?.postMessage({ type: 'GET_VERSION' }, [messageChannel.port2]);
+                } catch (error) {
+                    log(`⚠️ SW Ready Check Failed: ${error.message}`, 'warning');
+                }
+            }
+            
             try {
-                // Try to load Monaco from CDN first
+                // Use the same Monaco version as the main app (@monaco-editor/react v4.7.0 uses Monaco 0.52.2)
+                const monacoVersion = '0.52.2';
                 const script = document.createElement('script');
-                script.src = 'https://cdn.jsdelivr.net/npm/monaco-editor@0.45.0/min/vs/loader.js';
+                script.src = `https://cdn.jsdelivr.net/npm/monaco-editor@${monacoVersion}/min/vs/loader.js`;
+                
+                // Add detailed logging for script loading
+                log(`📥 Loading Monaco Loader: ${script.src}`, 'info');
+                
                 script.onload = () => {
-                    log('✅ Monaco loader script loaded', 'success');
+                    log('✅ Monaco loader script loaded successfully', 'success');
                     
                     if (window.require) {
+                        const vsPath = `https://cdn.jsdelivr.net/npm/monaco-editor@${monacoVersion}/min/vs`;
+                        log(`🔧 Configuring Monaco paths: ${vsPath}`, 'info');
+                        
                         window.require.config({ 
                             paths: { 
-                                'vs': 'https://cdn.jsdelivr.net/npm/monaco-editor@0.45.0/min/vs' 
+                                'vs': vsPath
                             } 
                         });
                         
+                        log('📦 Loading Monaco editor main module...', 'info');
                         window.require(['vs/editor/editor.main'], function() {
-                            log('✅ Monaco editor main loaded', 'success');
+                            log('✅ Monaco editor main module loaded', 'success');
                             
                             try {
+                                log('🎨 Creating Monaco editor instance...', 'info');
                                 const editor = monaco.editor.create(document.getElementById('editor'), {
                                     value: 'console.log("Hello Monaco!");',
                                     language: 'javascript',
                                     theme: 'vs-dark'
                                 });
                                 log('✅ Monaco editor created successfully', 'success');
+                                log(`📊 Monaco version: ${monaco.version || 'unknown'}`, 'info');
                                 
-                                // Test worker functionality
+                                // Test worker functionality with more detailed logging
                                 setTimeout(() => {
-                                    editor.setValue('// Testing worker functionality\nconst x = 1;\nconst y = 2;\nconst z = x + y;');
+                                    log('🔧 Testing Monaco worker functionality...', 'info');
+                                    editor.setValue('// Testing worker functionality\nconst x = 1;\nconst y = 2;\nconst z = x + y;\n\n// This should trigger language services');
                                     log('✅ Monaco editor content updated', 'success');
+                                    
+                                    // Check for any markers (errors/warnings) that might indicate worker issues
+                                    setTimeout(() => {
+                                        const model = editor.getModel();
+                                        if (model) {
+                                            const markers = monaco.editor.getModelMarkers({ resource: model.uri });
+                                            if (markers.length > 0) {
+                                                log(`📝 Editor markers found: ${markers.length}`, 'info');
+                                                markers.forEach(marker => {
+                                                    log(`  - ${marker.severity}: ${marker.message}`, 'info');
+                                                });
+                                            } else {
+                                                log('✅ No editor markers - workers functioning correctly', 'success');
+                                            }
+                                        }
+                                    }, 2000);
                                 }, 1000);
                                 
                             } catch (error) {
                                 log(`❌ Monaco editor creation failed: ${error.message}`, 'error');
+                                log(`Stack trace: ${error.stack}`, 'error');
                             }
+                        }, (error) => {
+                            log(`❌ Monaco editor main module load failed: ${error}`, 'error');
                         });
                     } else {
-                        log('❌ Monaco require not available', 'error');
+                        log('❌ Monaco require not available after script load', 'error');
                     }
                 };
+                
                 script.onerror = (error) => {
-                    log(`❌ Monaco loader script failed: ${error.message}`, 'error');
+                    log(`❌ Monaco loader script failed to load`, 'error');
+                    log(`Error details: ${JSON.stringify({
+                        type: error.type,
+                        target: error.target?.src,
+                        message: error.message
+                    })}`, 'error');
                 };
+                
+                // Monitor network requests for Monaco resources
+                const originalFetch = window.fetch;
+                window.fetch = function(...args) {
+                    const url = args[0];
+                    if (typeof url === 'string' && (url.includes('monaco') || url.includes('jsdelivr.net'))) {
+                        log(`🌐 Monaco Fetch Request: ${url}`, 'info');
+                    }
+                    return originalFetch.apply(this, args).then(response => {
+                        if (typeof url === 'string' && (url.includes('monaco') || url.includes('jsdelivr.net'))) {
+                            log(`📥 Monaco Fetch Response: ${url} - ${response.status} ${response.statusText}`, 
+                                response.ok ? 'success' : 'error');
+                        }
+                        return response;
+                    }).catch(error => {
+                        if (typeof url === 'string' && (url.includes('monaco') || url.includes('jsdelivr.net'))) {
+                            log(`❌ Monaco Fetch Error: ${url} - ${error.message}`, 'error');
+                        }
+                        throw error;
+                    });
+                };
+                
                 document.head.appendChild(script);
                 
             } catch (error) {
-                log(`❌ Monaco load test failed: ${error.message}`, 'error');
+                log(`❌ Monaco load test setup failed: ${error.message}`, 'error');
+                log(`Stack trace: ${error.stack}`, 'error');
             }
         }
         
