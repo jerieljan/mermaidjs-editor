@@ -16,15 +16,36 @@ self.addEventListener('install', (event) => {
 })
 
 self.addEventListener('fetch', (event) => {
+  const url = new URL(event.request.url)
+  
+  // Network-first strategy for HTML documents to ensure fresh CSP headers
+  if (event.request.mode === 'navigate' || 
+      event.request.destination === 'document' ||
+      url.pathname === '/' || 
+      url.pathname.endsWith('.html')) {
+    
+    event.respondWith(
+      fetch(event.request)
+        .then((response) => {
+          // Don't cache HTML documents with CSP headers
+          return response
+        })
+        .catch(() => {
+          // Fallback to cache only if network fails
+          return caches.match(event.request)
+        })
+    )
+    return
+  }
+  
+  // Cache-first strategy for static assets only
   event.respondWith(
     caches.match(event.request)
       .then((response) => {
-        // Return cached version or fetch from network
         if (response) {
           return response
         }
         
-        // Clone the request for fetch
         const fetchRequest = event.request.clone()
         
         return fetch(fetchRequest).then((response) => {
@@ -33,13 +54,14 @@ self.addEventListener('fetch', (event) => {
             return response
           }
 
-          // Clone the response for cache
-          const responseToCache = response.clone()
-          
-          // Cache static assets
-          if (event.request.url.includes('/assets/') || 
-              event.request.url.endsWith('.js') || 
-              event.request.url.endsWith('.css')) {
+          // Only cache static assets, not external CDN resources
+          if (url.origin === location.origin &&
+              (event.request.url.includes('/assets/') || 
+               event.request.url.endsWith('.js') || 
+               event.request.url.endsWith('.css') ||
+               event.request.url.endsWith('.svg'))) {
+            
+            const responseToCache = response.clone()
             caches.open(CACHE_NAME)
               .then((cache) => {
                 cache.put(event.request, responseToCache)
