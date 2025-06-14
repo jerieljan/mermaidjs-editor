@@ -32,6 +32,8 @@ function App() {
                 fontSize: 14,
                 wordWrap: 'on',
                 fontFamily: 'Berkeley Mono, Inconsolata, Menlo, monospace',
+                fontLigatures: true,
+                folding: true
               }}
             />
           </div>
