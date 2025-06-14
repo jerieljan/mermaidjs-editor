@@ -19,7 +19,7 @@ const MermaidPreview: React.FC<MermaidPreviewProps> = ({ code, isEditorVisible, 
       theme: 'default',
       securityLevel: 'loose',
       themeVariables: {
-        fontFamily: 'Inter Display, sans-serif',
+        fontFamily: 'Inter Display, Helvetica, Arial, sans-serif',
       },
     })
   }, [])
@@ -188,7 +188,7 @@ const MermaidPreview: React.FC<MermaidPreviewProps> = ({ code, isEditorVisible, 
             marginBottom: '1rem',
             borderRadius: '4px',
             border: '1px solid #ffcdd2',
-            fontFamily: 'Berkeley Mono, monospace',
+            fontFamily: 'Berkeley Mono, Inconsolata, Menlo, monospace',
             fontSize: '0.85em',
             whiteSpace: 'pre-wrap'
           }}>

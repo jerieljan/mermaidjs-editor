@@ -1,54 +1,74 @@
-# React + TypeScript + Vite
+# Mermaid Diagram Editor
 
-This template provides a minimal setup to get React working in Vite with HMR and some ESLint rules.
+A live Mermaid diagram editor with real-time preview, built with React, TypeScript, and Vite.
 
-Currently, two official plugins are available:
+## Features
 
-- [@vitejs/plugin-react](https://github.com/vitejs/vite-plugin-react/blob/main/packages/plugin-react) uses [Babel](https://babeljs.io/) for Fast Refresh
-- [@vitejs/plugin-react-swc](https://github.com/vitejs/vite-plugin-react/blob/main/packages/plugin-react-swc) uses [SWC](https://swc.rs/) for Fast Refresh
+- **Live Preview**: See your Mermaid diagrams rendered in real-time as you type
+- **Monaco Editor**: Professional code editor with syntax highlighting and Berkeley Mono font
+- **Error Handling**: Shows error messages while preserving the last valid diagram
+- **Zoom Controls**: Zoom in, zoom out, and reset controls for diagram preview
+- **Collapsible Editor**: Hide/show editor for full-screen preview mode
+- **Split-Pane Layout**: Resizable editor and preview panes
 
-## Expanding the ESLint configuration
+## Getting Started
 
-If you are developing a production application, we recommend updating the configuration to enable type-aware lint rules:
+### Prerequisites
 
-```js
-export default tseslint.config({
-  extends: [
-    // Remove ...tseslint.configs.recommended and replace with this
-    ...tseslint.configs.recommendedTypeChecked,
-    // Alternatively, use this for stricter rules
-    ...tseslint.configs.strictTypeChecked,
-    // Optionally, add this for stylistic rules
-    ...tseslint.configs.stylisticTypeChecked,
-  ],
-  languageOptions: {
-    // other options...
-    parserOptions: {
-      project: ['./tsconfig.node.json', './tsconfig.app.json'],
-      tsconfigRootDir: import.meta.dirname,
-    },
-  },
-})
+- Node.js (v16 or higher)
+- npm
+
+### Installation
+
+1. Clone the repository
+2. Install dependencies:
+   ```bash
+   npm install
+   ```
+
+### Development
+
+Start the development server with hot reload:
+```bash
+npm run dev
 ```
 
-You can also install [eslint-plugin-react-x](https://github.com/Rel1cx/eslint-react/tree/main/packages/plugins/eslint-plugin-react-x) and [eslint-plugin-react-dom](https://github.com/Rel1cx/eslint-react/tree/main/packages/plugins/eslint-plugin-react-dom) for React-specific lint rules:
+### Building
 
-```js
-// eslint.config.js
-import reactX from 'eslint-plugin-react-x'
-import reactDom from 'eslint-plugin-react-dom'
-
-export default tseslint.config({
-  plugins: {
-    // Add the react-x and react-dom plugins
-    'react-x': reactX,
-    'react-dom': reactDom,
-  },
-  rules: {
-    // other rules...
-    // Enable its recommended typescript rules
-    ...reactX.configs['recommended-typescript'].rules,
-    ...reactDom.configs.recommended.rules,
-  },
-})
+Build for production:
+```bash
+npm run build
 ```
+
+Preview the production build:
+```bash
+npm run preview
+```
+
+### Linting
+
+Run ESLint checks:
+```bash
+npm run lint
+```
+
+## Architecture
+
+- **React + TypeScript + Vite**: Modern development stack
+- **Monaco Editor**: Code editor with markdown syntax highlighting
+- **Mermaid**: Diagram rendering library
+- **Split-pane layout**: Editor on left, live preview on right
+- **Persistent state**: Zoom level maintained across renders
+
+## Key Components
+
+- `App.tsx`: Main application with split-pane layout and editor toggle
+- `MermaidPreview.tsx`: Handles diagram rendering, error handling, and zoom controls
+
+## Contributing
+
+1. Fork the repository
+2. Create your feature branch
+3. Make your changes
+4. Run tests and linting
+5. Submit a pull request

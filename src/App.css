@@ -7,7 +7,7 @@
 .app {
   display: flex;
   height: 100vh;
-  font-family: 'Inter Display', 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+  font-family: 'Inter Display', Helvetica, Arial, sans-serif;
 }
 
 .editor-pane {

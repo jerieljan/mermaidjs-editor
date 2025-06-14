@@ -29,7 +29,7 @@ function App() {
               minimap: { enabled: false },
               fontSize: 14,
               wordWrap: 'on',
-              fontFamily: 'Berkeley Mono, monospace',
+              fontFamily: 'Berkeley Mono, Inconsolata, Menlo, monospace',
             }}
           />
         </div>
