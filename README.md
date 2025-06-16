@@ -8,6 +8,8 @@ A live Mermaid diagram editor with real-time preview, built with React, TypeScri
 - **Monaco Editor**: Professional code editor with syntax highlighting and Berkeley Mono font
 - **Error Handling**: Shows error messages while preserving the last valid diagram
 - **Zoom Controls**: Zoom in, zoom out, and reset controls for diagram preview
+- **Background Themes**: Toggle between grey, white, and black backgrounds using compact `(●○○)` selector
+- **SVG Export**: Download diagrams as SVG files
 - **Collapsible Editor**: Hide/show editor for full-screen preview mode
 - **Split-Pane Layout**: Resizable editor and preview panes
 
@@ -63,7 +65,7 @@ npm run lint
 ## Key Components
 
 - `App.tsx`: Main application with split-pane layout and editor toggle
-- `MermaidPreview.tsx`: Handles diagram rendering, error handling, and zoom controls
+- `MermaidPreview.tsx`: Handles diagram rendering, error handling, zoom controls, background themes, and SVG export
 
 ## Contributing
 

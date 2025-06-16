@@ -32,6 +32,8 @@ This is a React + TypeScript + Vite application that provides a Mermaid diagram 
 - Split-pane layout with editor on left and live preview on right
 - Editor visibility toggle: Hide/Show Editor button in preview pane header allows full-screen preview mode
 - Preview pane automatically expands to full width when editor is hidden
+- Background theme selector: Compact toggle button `(●○○)` cycles between grey/white/black backgrounds
+- Error handling: Uses `mermaid.parse()` validation to prevent error SVG elements from being appended to DOM
 
 ## Deployment & Security
 

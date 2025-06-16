@@ -12,6 +12,7 @@ const MermaidPreview: React.FC<MermaidPreviewProps> = ({ code, isEditorVisible, 
   const [error, setError] = useState<string | null>(null)
   const [lastValidSvg, setLastValidSvg] = useState<string>('')
   const [zoom, setZoom] = useState<number>(1)
+  const [backgroundTheme, setBackgroundTheme] = useState<'grey' | 'white' | 'black'>('grey')
 
   useEffect(() => {
     mermaid.initialize({
@@ -65,6 +66,17 @@ const MermaidPreview: React.FC<MermaidPreviewProps> = ({ code, isEditorVisible, 
   const handleZoomIn = () => setZoom(prev => Math.min(prev + 0.25, 3))
   const handleZoomOut = () => setZoom(prev => Math.max(prev - 0.25, 0.25))
   const handleZoomReset = () => setZoom(1)
+  
+  const handleThemeToggle = () => {
+    setBackgroundTheme(prev => {
+      switch (prev) {
+        case 'grey': return 'white'
+        case 'white': return 'black'
+        case 'black': return 'grey'
+        default: return 'grey'
+      }
+    })
+  }
 
   const handleDownloadSvg = () => {
     if (!lastValidSvg || error) return
@@ -109,6 +121,23 @@ const MermaidPreview: React.FC<MermaidPreviewProps> = ({ code, isEditorVisible, 
             }}
           >
             {isEditorVisible ? 'Hide Editor' : 'Show Editor'}
+          </button>
+          <button 
+            onClick={handleThemeToggle}
+            style={{
+              background: 'rgba(255,255,255,0.1)',
+              border: '1px solid rgba(255,255,255,0.2)',
+              color: 'white',
+              padding: '0.25rem 0.5rem',
+              borderRadius: '4px',
+              cursor: 'pointer',
+              fontSize: '0.8rem',
+              marginRight: '0.5rem',
+              fontFamily: 'monospace'
+            }}
+            title={`Background: ${backgroundTheme}`}
+          >
+            {backgroundTheme === 'grey' ? '(●○○)' : backgroundTheme === 'white' ? '(○●○)' : '(○○●)'}
           </button>
           <button 
             onClick={handleZoomOut}
@@ -173,7 +202,12 @@ const MermaidPreview: React.FC<MermaidPreviewProps> = ({ code, isEditorVisible, 
           </button>
         </div>
       </div>
-      <div style={{ flex: 1, padding: '1rem', overflow: 'auto' }}>
+      <div style={{ 
+        flex: 1, 
+        padding: '1rem', 
+        overflow: 'auto',
+        backgroundColor: backgroundTheme === 'white' ? '#ffffff' : backgroundTheme === 'black' ? '#000000' : '#f5f5f5'
+      }}>
         {error && (
           <div style={{ 
             color: '#d32f2f', 
