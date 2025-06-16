@@ -31,14 +31,26 @@ const MermaidPreview: React.FC<MermaidPreviewProps> = ({ code, isEditorVisible, 
 
     const renderDiagram = async () => {
       try {
+        // First validate the syntax without rendering
+        await mermaid.parse(code)
+        
         const id = `mermaid-${Date.now()}`
         const { svg } = await mermaid.render(id, code)
+        
+        // Clean up any error elements that might have been added to the DOM
+        const errorElements = document.querySelectorAll('[id^="mermaid-"][role="graphics-document document"][aria-roledescription="error"]')
+        errorElements.forEach(element => element.remove())
+        
         if (containerRef.current) {
           containerRef.current.innerHTML = svg
           setLastValidSvg(svg)
           setError(null)
         }
       } catch (err) {
+        // Clean up any error SVG elements that might have been added to the DOM
+        const errorElements = document.querySelectorAll('[id^="mermaid-"][role="graphics-document document"][aria-roledescription="error"]')
+        errorElements.forEach(element => element.remove())
+        
         setError(err instanceof Error ? err.message : 'Failed to render diagram')
         // Keep showing the last valid diagram instead of clearing
         if (containerRef.current && lastValidSvg) {
