@@ -4,7 +4,13 @@ import MermaidPreview from './components/MermaidPreview'
 import ErrorBoundary from './components/ErrorBoundary'
 import './App.css'
 
-const defaultMermaidCode = `graph TD
+const defaultMermaidCode = `---
+title: Example Diagram
+config:
+    look: handDrawn
+    theme: neutral
+---
+graph TD
     A[Start] --> B{Is it?}
     B -->|Yes| C[OK]
     C --> D[Rethink]
