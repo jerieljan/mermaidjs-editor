@@ -34,14 +34,14 @@ const MermaidPreview: React.FC<MermaidPreviewProps> = ({ code, isEditorVisible, 
       try {
         // First validate the syntax without rendering
         await mermaid.parse(code)
-        
+
         const id = `mermaid-${Date.now()}`
         const { svg } = await mermaid.render(id, code)
-        
+
         // Clean up any error elements that might have been added to the DOM
         const errorElements = document.querySelectorAll('[id^="mermaid-"][role="graphics-document document"][aria-roledescription="error"]')
         errorElements.forEach(element => element.remove())
-        
+
         if (containerRef.current) {
           containerRef.current.innerHTML = svg
           setLastValidSvg(svg)
@@ -51,7 +51,7 @@ const MermaidPreview: React.FC<MermaidPreviewProps> = ({ code, isEditorVisible, 
         // Clean up any error SVG elements that might have been added to the DOM
         const errorElements = document.querySelectorAll('[id^="mermaid-"][role="graphics-document document"][aria-roledescription="error"]')
         errorElements.forEach(element => element.remove())
-        
+
         setError(err instanceof Error ? err.message : 'Failed to render diagram')
         // Keep showing the last valid diagram instead of clearing
         if (containerRef.current && lastValidSvg) {
@@ -66,7 +66,7 @@ const MermaidPreview: React.FC<MermaidPreviewProps> = ({ code, isEditorVisible, 
   const handleZoomIn = () => setZoom(prev => Math.min(prev + 0.25, 3))
   const handleZoomOut = () => setZoom(prev => Math.max(prev - 0.25, 0.25))
   const handleZoomReset = () => setZoom(1)
-  
+
   const handleThemeToggle = () => {
     setBackgroundTheme(prev => {
       switch (prev) {
@@ -80,7 +80,7 @@ const MermaidPreview: React.FC<MermaidPreviewProps> = ({ code, isEditorVisible, 
 
   const handleDownloadSvg = () => {
     if (!lastValidSvg || error) return
-    
+
     const blob = new Blob([lastValidSvg], { type: 'image/svg+xml' })
     const url = URL.createObjectURL(blob)
     const a = document.createElement('a')
@@ -227,7 +227,10 @@ const MermaidPreview: React.FC<MermaidPreviewProps> = ({ code, isEditorVisible, 
           style={{ 
             minHeight: '200px',
             overflow: 'auto',
-            textAlign: 'center'
+            textAlign: 'center',
+            padding: '1rem',
+            width: '100%',
+            height: '100%'
           }}
         >
           <div
@@ -236,7 +239,7 @@ const MermaidPreview: React.FC<MermaidPreviewProps> = ({ code, isEditorVisible, 
               transform: `scale(${zoom})`,
               transformOrigin: 'top center',
               width: `${100 / zoom}%`,
-              height: zoom < 1 ? `${100 / zoom}%` : 'auto',
+              height: `${100 / zoom}%`,
               display: 'inline-block'
             }}
           />
